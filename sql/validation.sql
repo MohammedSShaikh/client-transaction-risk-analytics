@@ -35,13 +35,13 @@ FROM accounts;
 SELECT transaction_id, COUNT(*) AS duplicate_count
 FROM transactions
 GROUP BY transaction_id
-HAVING COUNT(*) > 1
+HAVING COUNT(*) > 1;
 
 -- Potential business duplicates: same account, timestamp, amount, and merchant.
 SELECT account_id, transaction_date, amount, merchant, COUNT(*) AS duplicate_count
 FROM transactions
 GROUP BY account_id, transaction_date, amount, merchant
-HAVING COUNT(*) > 1
+HAVING COUNT(*) > 1;
 
 -- 3. Foreign-key integrity: orphan transactions.
 SELECT COUNT(*) AS orphan_transactions

@@ -46,7 +46,7 @@ CREATE TABLE transactions_staging (
     street TEXT,
     city TEXT,
     state TEXT,
-    zip INT,
+    zip TEXT,
     lat DOUBLE PRECISION,
     long DOUBLE PRECISION,
     city_pop INT,
@@ -109,6 +109,6 @@ FROM transactions_staging t
 JOIN clients c ON t.cc_num = c.cc_num
 JOIN accounts a ON c.client_id = a.client_id;
 
-SELECT * FROM transactions LIMIT 10
-SELECT * FROM accounts LIMIT 10
-SELECT * FROM clients LIMIT 10
+SELECT * FROM transactions LIMIT 10;
+SELECT * FROM accounts LIMIT 10;
+SELECT * FROM clients LIMIT 10;

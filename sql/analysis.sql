@@ -7,14 +7,14 @@ WITH CLIENT_METRICS AS
     SELECT C.client_id, C.first_name, 
     COUNT(transaction_id) AS TOTAL_TXS, 
     SUM(T.AMOUNT) AS TOTAL, 
-    AVG(T.AMOUNT) AS avg
+    AVG(T.AMOUNT) AS avg_amount
     FROM clients c
     LEFT JOIN accounts a ON A.client_id = C.client_id
     LEFT JOIN transactions T ON A.account_id = T.account_id
     GROUP BY C.client_id, C.first_name
   )
-SELECT client_id, first_name, TOTAL_TXS, TOTAL, ROUND(AVG,2) as average,
-  DENSE_RANK() OVER(ORDER BY TOTAl DESC) as volume_rank
+SELECT client_id, first_name, TOTAL_TXS, TOTAL, ROUND(avg_amount,2) as average,
+  DENSE_RANK() OVER(ORDER BY TOTAL DESC) as volume_rank
 FROM CLIENT_METRICS;
 
 

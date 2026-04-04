@@ -1,24 +1,91 @@
 # Client Transaction Risk Analytics
 
-This project is an end-to-end fraud-risk analytics workflow built on the “Client Transaction Risk Analytics” dataset. It takes raw transaction exports, cleans and samples them, materializes them into a Supabase/Postgres warehouse, adds derived features, validates the data, and surfaces client-level risk signals via SQL-backed analysis and visuals.
+### End-to-End Fraud Risk Analytics Pipeline on 1.5M+ Transactions
 
-## Project Purpose
+This project simulates how financial institutions identify potentially fraudulent customers using transaction behavior patterns. By engineering interpretable behavioral risk signals from 1.5M+ transactions, the pipeline prioritizes clients for investigation and demonstrates how analytics can improve fraud monitoring efficiency.
 
-The goal is to show how transaction data can be prepared, enriched, and modeled to highlight clients with unusual behavior (large amounts, high velocity) so a downstream analyst or automated alerting system can prioritize investigations. The work illustrates ETL, SQL modeling, feature engineering, and exploratory visualization in a compact intern-style project.
+The system cleans, models, and analyzes transaction data within a PostgreSQL (Supabase) warehouse, generating client-level risk indicators based on transaction amount anomalies and unusual activity velocity.
 
-## Flow Overview
+---
 
-1. **Cleaning stage** – `notebooks/clean_data.ipynb` reads `data/fraudTrain.csv` and `data/fraudTest.csv`, coerces datetimes/numerics/bools, concatenates, optionally samples 50%, and writes `data/transactions_clean.csv`. This cleaned asset feeds the warehouse load.
-2. **Ingestion & validation** – `sql/table_creation.sql` defines `clients`, `accounts`, `transactions`, and `transactions_staging`, deduplicates clients/accounts, and loads transactions from the staging table; `sql/validation.sql` runs null/duplicate/orphan/business-rule and statistical outlier checks to certify the Postgres tables.
-3. **Export to Supabase** – `notebooks/export_supabase.ipynb` batches the cleaned rows into Supabase so the warehouse tables back the analytics view.
-4. **Feature engineering & EDA** – After the export, `notebooks/feature_engineering.ipynb` derives temporal (hour/day/month), demographic (age), and risk-related (off-hours flag, category weight) features, saving `data/transactions_features.csv`. The derived dataset plus `notebooks/eda.ipynb` support offline exploration that is not materialized in the warehouse.
-5. **Risk summary & analysis** – `sql/analysis.sql` builds client-level metrics plus large-amount and high-velocity flags, exposing the summarized view `client_risk_summary`. `notebooks/risk_analysis.ipynb` connects to the warehouse, queries that view, plots risk-level distributions, and highlights the top high-risk clients for quick interpretation.
+### Live Dashboard  
+[View Interactive Tableau Dashboard](https://public.tableau.com/app/profile/mohammed.s1243/viz/ClientTransactionRiskAnalyticsDashboard/Dashboard1?publish=yes)
 
-## Key Assets
+## Dashboard Preview
+![dashboard preview](https://github.com/MohammedSShaikh/client-transaction-risk-analytics/blob/main/dashboards/tableauDash.png)
+---
 
-- `data/`: raw and derived CSVs (`fraudTrain.csv`, `fraudTest.csv`, `transactions_clean.csv`, `transactions_features.csv`).
-- `notebooks/`: cleaning, feature engineering, Supabase export, EDA, and risk-analysis notebooks.
-- `sql/`: DDL + DML scripts that set up the warehouse/tables, validate the data, and define the risk summary view (including the client risk summary exposed to the notebooks).
-- `.env` (local only): stores Supabase connection info for the notebooks and SQL clients that run against the hosted warehouse.
+## Risk Scoring Logic
 
-The combination of notebooks and SQL demonstrates how cleaned transaction data can transition into a modeled warehouse and inform client-level risk reporting.
+Client risk is calculated using two interpretable behavioral indicators commonly used in rule-based fraud detection systems. 
+
+#### Large Transaction Amount
+Transactions above the **95th percentile** of all transaction values are flagged as unusually large relative to the population baseline.
+
+#### High Transaction Velocity
+Clients performing more than **5 transactions within one hour** are flagged for unusually high activity frequency, a common signal of anomalous behavior.
+
+#### Risk Score: Each transaction receives a score based on triggered flags:
+
+| Score | Risk Level |
+|------|------------|
+| 0 | Low |
+| 1 | Medium |
+| 2 | High |
+
+Client-level risk is calculated by aggregating transaction-level signals across each client’s activity history.
+
+
+## Key Findings
+
+- Majority of clients (~93%) fall into **Medium risk**, suggesting skewed distribution in the dataset and highlighting an opportunity to refine threshold logic for better risk differentiation
+- Off-hours transactions (**midnight–5am**) show ~**15% higher average spend**, suggesting a strong behavioral signal for anomalous activity  
+- High-value transactions are unexpectedly concentrated in **grocery_pos**, suggesting potential misuse patterns in typically low-risk merchant categories
+- Clients aged **30–40** exhibit the highest average transaction amounts across groups  
+- Transaction volume peaks at **11pm**, followed by a sharp drop after midnight - a natural threshold for defining off-hours   
+
+---
+
+## Business Impact
+
+- Enables prioritization of high-risk clients for investigation  
+- Reduces manual review effort by surfacing behavioral risk signals  
+- Demonstrates how transaction data can support fraud detection workflows  
+- Provides a scalable framework for client-level risk monitoring  
+
+---
+
+## Skills Demonstrated
+- SQL analytics (CTEs, window functions)
+- feature engineering
+- risk segmentation
+- data modeling
+- EDA
+- End-to-end pipeline design.
+
+---
+
+## Tech Stack
+
+| Layer | Tools |
+|---|---|
+| Data Processing | Python, pandas |
+| Warehouse | PostgreSQL, Supabase |
+| Analysis | SQL (CTEs, window functions, percentile scoring), Exploratory Data Analysis |
+| Visualization | Tableau, matplotlib |
+
+---
+
+## Pipeline Flow
+```
+Raw Transaction Data (CSV)
+   → Data Cleaning & Sampling (pandas)
+      → Supabase Staging Tables
+         → Data Warehouse Modeling (PostgreSQL)
+            → Data Validation (nulls, duplicates, outliers)
+               → Feature Engineering (temporal, demographic, risk flags)
+                  → Risk Scoring (percentile thresholds + velocity rules)
+                     → client_risk_summary view
+                        → Tableau Dashboard (interactive risk monitoring)
+```
+

@@ -36,6 +36,13 @@ Clients performing more than **5 transactions within one hour** are flagged for 
 Client-level risk is calculated by aggregating transaction-level signals across each client’s activity history.
 
 
+## Machine Learning Model
+
+In addition to the rule-based risk scoring system, this project includes a predictive Machine Learning component implemented in model.py. A Logistic Regression model from scikit-learn is trained on preprocessed transaction data enriched with engineered features (e.g., time-based behavioral patterns).
+
+The model learns to estimate the probability that a transaction is fraudulent, complementing deterministic rules with data-driven insights. Once trained, the model is serialized and saved as model.joblib, allowing it to be easily loaded for inference in production or during further evaluation.
+
+
 ## Key Findings
 
 - Majority of clients (~93%) fall into **Medium risk**, suggesting skewed distribution in the dataset and highlighting an opportunity to refine threshold logic for better risk differentiation
@@ -60,6 +67,7 @@ Client-level risk is calculated by aggregating transaction-level signals across 
 - feature engineering
 - risk segmentation
 - data modeling
+- machine learning (Logistic Regression)
 - EDA
 - End-to-end pipeline design.
 
@@ -72,6 +80,7 @@ Client-level risk is calculated by aggregating transaction-level signals across 
 | Data Processing | Python, pandas |
 | Warehouse | PostgreSQL, Supabase |
 | Analysis | SQL (CTEs, window functions, percentile scoring), Exploratory Data Analysis |
+| Machine Learning | scikit-learn, joblib (Logistic Regression) |
 | Visualization | Tableau, matplotlib |
 
 ---
@@ -85,7 +94,8 @@ Raw Transaction Data (CSV)
             → Data Validation (nulls, duplicates, outliers)
                → Feature Engineering (temporal, demographic, risk flags)
                   → Risk Scoring (percentile thresholds + velocity rules)
-                     → client_risk_summary view
-                        → Tableau Dashboard (interactive risk monitoring)
+                     → Machine Learning Modeling (model.py: Logistic Regression)
+                        → client_risk_summary view
+                           → Tableau Dashboard (interactive risk monitoring)
 ```
 
